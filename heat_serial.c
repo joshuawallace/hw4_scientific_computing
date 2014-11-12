@@ -12,6 +12,8 @@ int main(int argc, char *argv[]) {
     initial_message(argv[0]);
   }
 
+  const int nx = atoi(argv[1]); 
+
 
 
   return 0;

@@ -1,6 +1,7 @@
 
 
 CXXFLAGS = -g -Wall
+CFLAGS = -g -Wall
 
 
 all: heat_serial
@@ -8,7 +9,7 @@ all: heat_serial
 
 serial_objects = heat_serial.o
 heat_serial: $(serial_objects)
-	$(CXX) -o $@ $^
+	$(CC) -o $@ $^ $(CFLAGS)
 
 
 
