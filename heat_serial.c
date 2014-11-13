@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include "pi.h"
+#include "boundaryconditions.h"
 #include "creategrid.h"
 #include "stepper.h"
+
+#define M_PI acos(-1.0)
 
 void  initial_message(char *name)
 {
@@ -20,12 +22,14 @@ int main(int argc, char *argv[])
   }
 
   const int nx = atoi(argv[1]); 
-  int check; //used for checking outputs to make sure they are good
-  double **T_arr; //This will be a pointer to an array of pointers which will host the grid itself
-  const double fraction_of_maximum_time_step=0.1;//This is the fraction of the largest numerically stable timestep, calculated below, that we want our dt to actually be.  Keeping it some sane fraction will allow us to get an exact fraction of the maximum time we want. In units of kappa
-  const double dt = M_PI * M_PI / (4.0 * (double)nx * (double)nx) * fraction_of_maximum_time_step; //This is the time step size, in units of kappa, which later cancel
-  const int tmax = (int)(0.5 * M_PI * M_PI / dt);
+  //  const float nx_double = atof(argv[1]);
+  int check; /*used for checking outputs to make sure they are good*/
+  double **T_arr; /*This will be a pointer to an array of pointers which will host the grid itself*/
+  const double fraction_of_maximum_time_step = 0.8;/*This is the fraction of the largest numerically stable timestep, calculated below, that we want our dt to actually be.  Keeping it some sane fraction will allow us to get an exact fraction of the maximum time we want. In units of kappa*/
   const double dx = M_PI / (double)nx;
+  const double dt =  dx * dx / 4.0 * fraction_of_maximum_time_step; /*This is the time step size, in units of kappa, which later cancel*/
+  const int tmax = (int)(0.5 * M_PI * M_PI / dt);
+
   
 
   T_arr = grid_creator(nx);
@@ -41,13 +45,38 @@ int main(int argc, char *argv[])
         }
     }
 
+  printf("%d\n",(int) (tmax/dt));
   for(int i=0; i<tmax; i++)
     {
+      if (i%50 == 0)
+        {
+          printf("%d\n",i);
+        }
       check = stepper(T_arr,nx,dx,dt);
       assert(check==0);
     }
 
+  FILE *fp;
 
+  if(!(fp=fopen("heat_serial.output.dat","w")))
+    {
+      printf("Output file isn't opening for saving.  Now quitting...\n");
+      grid_destroyer(T_arr,nx);
+      exit(1);
+    }
+
+  fprintf(fp,"#Final temperature stored in grid format\n");
+  fprintf(fp,"#Each column in this file corresponds to column of actual grid, as does each row\n");
+  
+  for(int i=0; i<nx; i++)
+    {
+      for(int j=0; j<nx; j++)
+        {
+          fprintf(fp,"%e     ", T_arr[i][j]);
+        }
+      fprintf(fp,"\n");
+    }
+  fclose(fp);
 
   grid_destroyer(T_arr,nx);
 
