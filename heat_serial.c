@@ -5,8 +5,7 @@
 #include "boundaryconditions.h"
 #include "creategrid.h"
 #include "stepper.h"
-
-#define M_PI acos(-1.0)
+#include "pi.h"
 
 void  initial_message(char *name)
 {

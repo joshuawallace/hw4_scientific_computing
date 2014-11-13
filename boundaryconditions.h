@@ -1,6 +1,8 @@
 #ifndef BC_H_
 #define BC_H_
 
+
+
 double T_x_0_boundaryconditions(int xi);
     
 double T_x_pi_boundaryconditions(int xi);
