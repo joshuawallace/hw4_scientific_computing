@@ -28,7 +28,7 @@ int stepper(double **T, const int nx, const double dx, const double dt)
           
           if(i==0) //corresponds to the top
             {
-              adjacent[0] = T_x_pi_boundaryconditions(j);
+              adjacent[0] = T_x_pi_boundaryconditions(j,nx);
             }
           else
             {
@@ -47,7 +47,7 @@ int stepper(double **T, const int nx, const double dx, const double dt)
 
           if(i==nx-1) //corresponds to the bottom
             {
-              adjacent[2] = T_x_0_boundaryconditions(j);
+              adjacent[2] = T_x_0_boundaryconditions(j,nx);
             }
           else
             {

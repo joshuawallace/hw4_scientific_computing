@@ -47,10 +47,10 @@ int main(int argc, char *argv[])
   printf("%d\n",(int) (tmax/dt));
   for(int i=0; i<tmax; i++)
     {
-      if (i%50 == 0)
+      /*if (i%50 == 0)
         {
           printf("%d\n",i);
-        }
+          }*/
       check = stepper(T_arr,nx,dx,dt);
       assert(check==0);
     }

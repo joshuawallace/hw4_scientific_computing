@@ -1,19 +1,28 @@
 #include <math.h>
+#include <stdio.h>
 #include "pi.h"
 
 
-double T_x_0_boundaryconditions(int xi)
+double T_x_0_boundaryconditions(int xi, int nx)
 {
   /*This is the boundary condition along the "bottom" of the grid, where y=0*/
   /*xi is the index of x*/
-  return cos((double)xi/M_PI) * cos((double)xi/M_PI);
+  /*if(xi==0 || xi==nx/2 || xi==nx-1)
+    {
+      printf("cos: %e\n", ((double)xi + 0.5)/(M_PI * (double)nx));
+      }*/
+  return cos(((double)xi + 0.5)/((double)nx) * M_PI) * cos(((double)xi + 0.5)/((double)nx) * M_PI);
 }
 
-double T_x_pi_boundaryconditions(int xi)
+double T_x_pi_boundaryconditions(int xi, int nx)
 {
   /*This is the boundary condition along the "top" of the grid, where y=pi*/
   /*xi is the index of x*/
-  return sin((double)xi/M_PI) * sin((double)xi/M_PI);
+  /*  if(xi==0 || xi==nx/2 || xi==nx-1)
+    {
+      printf("sin: %e\n", ((double)xi + 0.5)/(M_PI * (double)nx));
+      }*/
+  return sin(((double)xi + 0.5)/((double)nx) * M_PI) * sin(((double)xi + 0.5)/((double)nx) * M_PI);
 }
 
 /*double T_0_y_boundaryconditions(int yi, int nx, double *T_arr)
