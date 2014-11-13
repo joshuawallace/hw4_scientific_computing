@@ -1,7 +1,7 @@
 
 
 CXXFLAGS = -g -Wall
-CFLAGS = -g -Wall
+CFLAGS   = -g -Wallxs
 CFLAGSLM = -g -Wall -lm
 
 
@@ -9,7 +9,7 @@ all: heat_serial
 
 
 stepper: stepper.o boundaryconditions.o creategrid.o
-	$(CC) -c -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS)
 
 serial_objects = heat_serial.o creategrid.o stepper.o
 heat_serial: $(serial_objects)

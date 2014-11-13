@@ -26,7 +26,7 @@ double T_0_y_boundaryconditions(int yi, int nx, double **T_arr)
 }
 
 
-double T_pit_y_boundaryconditions(int yi, double **T_arr)
+double T_pi_y_boundaryconditions(int yi, double **T_arr)
 {
   /*This is the boundary condition along the "right" of the grid, where x=pi*/
   /*yi is the index of y*/

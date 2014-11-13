@@ -1,8 +1,8 @@
 #include <math.h>
 
-#ifndef PI_H_
-#define PI_H_
+/*This file defines M_PI if math.h does not have it defined already for some reason*/
 
-    #define M_PI = acos(-1.0)
+#ifndef M_PI
+#define M_PI = acos(-1.0)
 
 #endif
