@@ -23,7 +23,12 @@ pp.xlabel("This is x")
 
 ax = fig.add_subplot(1,1,1,projection='3d')
 
-p=ax.plot_wireframe(x,y,arr,rstride=4,cstride=4)
+p=ax.plot_wireframe(x,y,arr,rstride=2,cstride=3)
 
 pp.savefig("serial.pdf")
+
+total = np.sum(arr)
+print total
+total = total / (float(len(arr)) * float(len(arr[0])))
+print total
 #pp.show()
