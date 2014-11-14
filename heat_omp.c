@@ -3,6 +3,7 @@
 #include <math.h>
 #include <assert.h>
 #include <string.h>
+#include <omp.h>
 #include "boundaryconditions.h"
 #include "creategrid.h"
 #include "stepper.h"
@@ -10,18 +11,20 @@
 
 void  initial_message(char *name)
 {
-  printf("Usage: %s <nx>\n",name);
-  printf("  nx:    grid size on a side\n         final grid will be 2-d sized nx by nx\n");
+  printf("Usage: %s <nx>  <nthread>\n",name);
+  printf("  nx:    grid size on a side\n         final grid will be 2-d sized nx by nx\n
+  nthread:   number of threads desired for parallel computing\n");
   exit(1);
 }
 
 int main(int argc, char *argv[]) 
 {
-  if (argc!=2) {
+  if (argc!=3) {
     initial_message(argv[0]);
   }
 
-  const int nx = atoi(argv[1]); 
+  const int nx = atoi(argv[1]);
+  const int nthread = atoi(argv[2]);
   //  const float nx_double = atof(argv[1]);
   int check; /*used for checking outputs to make sure they are good*/
   double **T_arr; /*This will be a pointer to an array of pointers which will host the grid itself*/

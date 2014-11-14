@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as pp
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
-serialoutput = "heat_serial.output.dat"
+which = "128"
+
+serialoutput = "heat_serial." + which + ".output.dat"
 
 arr = np.loadtxt(serialoutput)#,unpack=True)
 
@@ -23,9 +25,13 @@ pp.xlabel("This is x")
 
 ax = fig.add_subplot(1,1,1,projection='3d')
 
-p=ax.plot_wireframe(x,y,arr,rstride=2,cstride=3)
+rstridenum = len(arr)/(30)
+cstridenum = len(arr[0])/(20)
 
-pp.savefig("serial.pdf")
+p=ax.plot_wireframe(x,y,arr,rstride=rstridenum,cstride=cstridenum)
+
+stemp = "serial." + which  + ".pdf"
+pp.savefig(stemp)
 
 total = np.sum(arr)
 print total
