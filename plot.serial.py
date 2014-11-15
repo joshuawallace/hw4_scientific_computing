@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as pp
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
-which = "128"
+which = "160"
 
 serialoutput = "heat_serial." + which + ".output.dat"
 

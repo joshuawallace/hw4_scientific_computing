@@ -52,10 +52,10 @@ int main(int argc, char *argv[])
   printf("%llu\n",(unsigned long long) (tmax/dt));
   for(unsigned long long int i=0; i<tmax; i++)
     {
-      if (i%5000000 == 0)
-        {
+      //if (i%50000 == 0)
+      //{
           printf("%llu\n",i);
-        }
+          //}
       check = stepper(T_arr,T_arr_2,nx,dx,dt);
       assert(check==0);
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
       /*The following switches the pointers T_arr and T_arr_2, making T_arr now equal to the newly updated array formerly pointed to by T_arr_2 and giving the T_arr_2 pointer the old array*/
       T_pointer_temp = T_arr_2;
       T_arr_2 = T_arr;
-      T_arr = T_arr_2;
+      T_arr = T_pointer_temp;
     }
 
   FILE *fp;
