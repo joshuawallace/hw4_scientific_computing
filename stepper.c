@@ -6,12 +6,12 @@
 
 
 
-int stepper(double **T, const int nx, const double dx, const double dt)
+int stepper(double **T, double **T2, const int nx, const double dx, const double dt)
 {
   //double adjacent[4];//goes top, right, bottom, left
 
 
-  double **deltaT = grid_creator(nx);
+  //double **deltaT = grid_creator(nx);
   
   for(int i=0; i<nx; i++)//which row, y
     {
@@ -21,7 +21,7 @@ int stepper(double **T, const int nx, const double dx, const double dt)
           if(adjacent == NULL)
             {
               fprintf(stderr, "Malloc did not work.  Now exiting...\n");
-              free(deltaT);
+              //free(deltaT);
               exit(1);
             }
           
@@ -77,20 +77,20 @@ int stepper(double **T, const int nx, const double dx, const double dt)
                 }*/
 
 
-          deltaT[i][j] = dt / (dx * dx) * (adjacent[0] + adjacent[1] + adjacent[2] + adjacent[3] - 4.*T[i][j]);
+          T2[i][j] = T[i][j] + dt / (dx * dx) * (adjacent[0] + adjacent[1] + adjacent[2] + adjacent[3] - 4.*T[i][j]);
           free(adjacent);
         }
     }
 
 
-  for(int i=0; i<nx; i++)//which row, y
+  /*for(int i=0; i<nx; i++)//which row, y
     {
       for(int j=0; j<nx; j++)//which column, x
         {
-          T[i][j] += deltaT[i][j];
+          T[i][j] += T2[i][j];
         }
-    }
-  grid_destroyer(deltaT,nx);
+        }*/
+  //grid_destroyer(deltaT,nx);
 
   return 0;
 }

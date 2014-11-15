@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as pp
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
-which = "160"
+which = "512"
 
 serialoutput = "heat_serial." + which + ".output.dat"
 
@@ -21,7 +21,7 @@ x,y = np.meshgrid(x,y)
 #    for j in range(len(arr[0])):
  
 fig = pp.figure(figsize=(np.pi,np.pi))
-pp.xlabel("This is x")
+#pp.xlabel("This is x")
 
 ax = fig.add_subplot(1,1,1,projection='3d')
 

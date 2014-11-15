@@ -1,19 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "stepper.h"
+#include <omp.h>
+#include "stepper.omp.h"
 #include "boundaryconditions.h"
 #include "creategrid.h"
 
 
 
-int stepper(double **T, const int nx, const double dx, const double dt)
+int stepper(double **T, double **T2, const int nx, const double dx, const double dt, int nthread)
 {
-  //double adjacent[4];//goes top, right, bottom, left
-
-
-  double **deltaT = grid_creator(nx);
-  
-  for(int i=0; i<nx; i++)//which row, y
+  omp_set_num_threads(nthread);
+#pragma omp parallel for /*if(nthread>1) */
+ for(int i=0; i<nx; i++)//which row, y
     {
       for(int j=0; j<nx; j++)//which column, x
         {
@@ -21,7 +19,7 @@ int stepper(double **T, const int nx, const double dx, const double dt)
           if(adjacent == NULL)
             {
               fprintf(stderr, "Malloc did not work.  Now exiting...\n");
-              free(deltaT);
+              //free(deltaT);
               exit(1);
             }
           
@@ -33,8 +31,8 @@ int stepper(double **T, const int nx, const double dx, const double dt)
           else
             {
               adjacent[0] = T[i-1][j];
-            }
-
+                }
+          
           if(j==nx-1) //corresponds to right side
             {
               //adjacent[1] = T_pi_y_boundaryconditions(i,T[i]);
@@ -44,16 +42,16 @@ int stepper(double **T, const int nx, const double dx, const double dt)
             {
               adjacent[1] = T[i][j+1];
             }
-
+          
           if(i==nx-1) //corresponds to the bottom
-            {
-              adjacent[2] = T_x_0_boundaryconditions(j,nx);
-            }
+                {
+                  adjacent[2] = T_x_0_boundaryconditions(j,nx);
+                }
           else
             {
               adjacent[2] = T[i+1][j];
             }
-
+          
           if(j==0) //corresponds to left side
             {
               //adjacent[3] = T_0_y_boundaryconditions(i,T[i]);
@@ -64,33 +62,21 @@ int stepper(double **T, const int nx, const double dx, const double dt)
               adjacent[3] = T[i][j-1];
             }
 
-          
-          /*for(int k=0; k<4; k++)
-            {
-              if(adjacent[k] == NULL)
-                {
-                  printf("Your stepper calculation had a malfunction.\n");
-                  grid_destroyer(deltaT,nx);
-                  free(adjacent);
-                  return -1;
-                }
-                }*/
 
-
-          deltaT[i][j] = dt / (dx * dx) * (adjacent[0] + adjacent[1] + adjacent[2] + adjacent[3] - 4.*T[i][j]);
+          T2[i][j] = T[i][j] + dt / (dx * dx) * (adjacent[0] + adjacent[1] + adjacent[2] + adjacent[3] - 4.*T[i][j]);
           free(adjacent);
         }
     }
+  
 
-
-  for(int i=0; i<nx; i++)//which row, y
+  /*for(int i=0; i<nx; i++)//which row, y
     {
       for(int j=0; j<nx; j++)//which column, x
         {
-          T[i][j] += deltaT[i][j];
+          T[i][j] += T2[i][j];
         }
-    }
-  grid_destroyer(deltaT,nx);
+        }*/
+  //grid_destroyer(deltaT,nx);
 
   return 0;
 }
