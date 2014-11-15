@@ -4,10 +4,147 @@
 #include <assert.h>
 #include <string.h>
 #include <omp.h>
-#include "boundaryconditions.h"
-#include "creategrid.h"
-#include "stepper.omp.h"
-#include "pi.h"
+
+#ifndef M_PI
+#define M_PI  acos(-1.0)
+
+#endif
+
+
+double T_x_0_boundaryconditions(int xi, int nx)
+{
+  /*This is the boundary condition along the "bottom" of the grid, where y=0*/
+  /*xi is the index of x*/
+  /*if(xi==0 || xi==nx/2 || xi==nx-1)
+    {
+      printf("cos: %e\n", ((double)xi + 0.5)/(M_PI * (double)nx));
+      }*/
+  return cos(((double)xi + 0.5)/((double)nx) * M_PI) * cos(((double)xi + 0.5)/((double)nx) * M_PI);
+}
+
+double T_x_pi_boundaryconditions(int xi, int nx)
+{
+  /*This is the boundary condition along the "top" of the grid, where y=pi*/
+  /*xi is the index of x*/
+  /*  if(xi==0 || xi==nx/2 || xi==nx-1)
+    {
+      printf("sin: %e\n", ((double)xi + 0.5)/(M_PI * (double)nx));
+      }*/
+  return sin(((double)xi + 0.5)/((double)nx) * M_PI) * sin(((double)xi + 0.5)/((double)nx) * M_PI);
+}
+
+double **grid_creator(const int nx)
+{
+  double **pointer;
+
+  pointer = malloc(nx * sizeof(double *));
+  if(pointer == NULL)//if the memory wasn't allocated
+    {
+      fprintf(stderr, "Malloc did not work.  Now exiting...\n");
+      exit(1);
+    }
+
+  for(int i = 0; i < nx; i++)
+    {
+      pointer[i] = malloc(nx * sizeof(double));
+      if(pointer[i] == NULL)//if the memory for a particular row wasn't allocated
+        {
+          fprintf(stderr, "Malloc did not work.  Now exiting...\n");
+          for(int j=0; j < i; j++)
+            {
+              free(pointer[j]);//free all the previous successfully allocated rows
+            }
+          free(pointer[i]);//free the array of pointers
+          exit(1);
+        }
+    }
+
+  return pointer;
+}
+
+void grid_destroyer(double **pointer, const int nx)
+{
+  //free memory at the end
+  for(int i=0; i < nx; i ++)
+    {
+      free(pointer[i]);
+    }
+  free(pointer);
+}
+
+int stepper(double **T, double **T2, const int nx, const double dx, const double dt, int nthread)
+{
+  omp_set_num_threads(nthread);
+#pragma omp parallel for /*if(nthread>1) */
+ for(int i=0; i<nx; i++)//which row, y
+    {
+      for(int j=0; j<nx; j++)//which column, x
+        {
+          double *adjacent = malloc(4 * sizeof(double));
+          if(adjacent == NULL)
+            {
+              fprintf(stderr, "Malloc did not work.  Now exiting...\n");
+              //free(deltaT);
+              exit(1);
+            }
+          
+          
+          if(i==0) //corresponds to the top
+            {
+              adjacent[0] = T_x_pi_boundaryconditions(j,nx);
+            }
+          else
+            {
+              adjacent[0] = T[i-1][j];
+                }
+          
+          if(j==nx-1) //corresponds to right side
+            {
+              //adjacent[1] = T_pi_y_boundaryconditions(i,T[i]);
+              adjacent[1] = T[i][0];
+            }
+          else
+            {
+              adjacent[1] = T[i][j+1];
+            }
+          
+          if(i==nx-1) //corresponds to the bottom
+                {
+                  adjacent[2] = T_x_0_boundaryconditions(j,nx);
+                }
+          else
+            {
+              adjacent[2] = T[i+1][j];
+            }
+          
+          if(j==0) //corresponds to left side
+            {
+              //adjacent[3] = T_0_y_boundaryconditions(i,T[i]);
+              adjacent[3] = T[i][nx-1];
+            }
+          else
+            {
+              adjacent[3] = T[i][j-1];
+            }
+
+
+          T2[i][j] = T[i][j] + dt / (dx * dx) * (adjacent[0] + adjacent[1] + adjacent[2] + adjacent[3] - 4.*T[i][j]);
+          free(adjacent);
+        }
+    }
+  
+
+  /*for(int i=0; i<nx; i++)//which row, y
+    {
+      for(int j=0; j<nx; j++)//which column, x
+        {
+          T[i][j] += T2[i][j];
+        }
+        }*/
+  //grid_destroyer(deltaT,nx);
+
+  return 0;
+}
 
 void  initial_message(char *name)
 {
@@ -19,6 +156,7 @@ void  initial_message(char *name)
 int main(int argc, char *argv[]) 
 {
 
+  double start_time = omp_get_wtime();
   if (argc!=3) 
     {
       initial_message(argv[0]);
@@ -31,6 +169,7 @@ int main(int argc, char *argv[])
       printf("Make sure you define nthread to be AT LEAST 1\n Now exiting...\n");
       exit(0);
     }
+
   //  omp_set_num_threads(nthread);
 
 
@@ -65,24 +204,16 @@ int main(int argc, char *argv[])
         }
     }
 
-  printf("%llu\n",(unsigned long long) (tmax/dt));
-  for(unsigned long long int i=0; i<ntstep; i++)
+  printf("%d\n",(int) (tmax/dt));
+  for(int i=0; i<ntstep; i++)
     {
       if (i%10000 == 0)
       {
-          printf("%llu\n",i);
+          printf("%d\n",i);
       }
       check = stepper(T_arr,T_arr_2,nx,dx,dt,nthread);
       assert(check==0);
 
-      /*Now update T_arr by T_arr_2*/
-      /*for(int i=0; i<nx; i++)
-        {
-          for(int j=0; j<nx; j++)
-            {
-              T_arr[i][j] = T_arr_2[i][j];
-            }
-            }*/
 
       /*The following switches the pointers T_arr and T_arr_2, making T_arr now equal to the newly updated array formerly pointed to by T_arr_2 and giving the T_arr_2 pointer the old array*/
       T_pointer_temp = T_arr_2;
@@ -123,7 +254,7 @@ int main(int argc, char *argv[])
   grid_destroyer(T_arr,nx);
   grid_destroyer(T_arr_2,nx);
 
-
+  printf("threads: %d, nx: %d, time: %lf\n",nthread,nx,omp_get_wtime()-start_time);
 
   return 0;
 }
