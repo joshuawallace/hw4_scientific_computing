@@ -225,35 +225,35 @@ int main(int argc, char *argv[])
         }
 
 
-      printf("Made it here %d\n",rank);
+      //printf("Made it here %d\n",rank);
       MPI_Isend(&left_pass, nx, MPI_DOUBLE, prev, tag1, MPI_COMM_WORLD, &reqs[0]);
-      printf("First send %d\n",rank);
-      MPI_Isend(&right_pass, nx, MPI_DOUBLE, next, tag1, MPI_COMM_WORLD, &reqs[1]);
-      printf("Second send %d\n",rank);
+      //printf("First send %d\n",rank);
+      MPI_Isend(&right_pass, nx, MPI_DOUBLE, next, tag2, MPI_COMM_WORLD, &reqs[1]);
+      //printf("Second send %d\n",rank);
 
       MPI_Irecv(&left_accept, nx, MPI_DOUBLE, prev, tag2, MPI_COMM_WORLD, &reqs[2]);
-      printf("First receive %d\n",rank);
-      fflush(stdout);
-      MPI_Irecv(&right_accept, nx, MPI_DOUBLE, next, tag2, MPI_COMM_WORLD, &reqs[3]);
-      printf("Second receive %d\n",rank);
-      fflush(stdout);
+      //printf("First receive %d\n",rank);
+      //fflush(stdout);
+      MPI_Irecv(&right_accept, nx, MPI_DOUBLE, next, tag1, MPI_COMM_WORLD, &reqs[3]);
+      //printf("Second receive %d\n",rank);
+      //fflush(stdout);
 
       MPI_Waitall(4, reqs, stats);
-      printf("Wait all done %d\n",rank);
-      fflush(stdout);
+      //printf("Wait all done %d\n",rank);
+      //fflush(stdout);
 
       for(int i=0; i<nx; i++)
         {
-	  printf("%d    %d\n",i,rank);
+	  //printf("%d    %d\n",i,rank);
           T_arr[i][0] = left_accept[i];
           T_arr[i][ncols-1] = right_accept[i];
         }
       
       
-      if (i == 10)
-      {
-        printf("%d   %d\n",i,rank);
-      }
+      if (i % 10000 == 0)
+        {
+          printf("%d   %d\n",i,rank);
+        }
       printf("Step in  %d\n",rank);
       check = stepper(T_arr,T_arr_2,nx,dx,dt,ncols,rank);
       assert(check==0);
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
   FILE *fp;
 
 
-  char outputfilename[120] = "heat_omp.";
+  char outputfilename[120] = "heat_mpi.";
   char stringtemp[120];
   sprintf(stringtemp, "%d", nx);
   strcat(outputfilename,stringtemp);
