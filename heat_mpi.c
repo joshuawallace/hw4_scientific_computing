@@ -1,0 +1,279 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
+#include <string.h>
+#include "mpi.h"
+
+#ifndef M_PI
+#define M_PI  acos(-1.0)
+
+#endif
+
+
+double T_x_0_boundaryconditions(int xi, int nx)
+{
+  /*This is the boundary condition along the "bottom" of the grid, where y=0*/
+  /*xi is the index of x*/
+
+  return cos(((double)xi + 0.5)/((double)nx) * M_PI) * cos(((double)xi + 0.5)/((double)nx) * M_PI);
+}
+
+double T_x_pi_boundaryconditions(int xi, int nx)
+{
+  /*This is the boundary condition along the "top" of the grid, where y=pi*/
+  /*xi is the index of x*/
+
+  return sin(((double)xi + 0.5)/((double)nx) * M_PI) * sin(((double)xi + 0.5)/((double)nx) * M_PI);
+}
+
+double ***large_grid_creator(const int nthread, const int nx, const int n)
+{
+  double ***pointer;
+
+  pointer = malloc(nthread * sizeof(double *));
+  if(pointer == NULL)//if the memory wasn't allocated
+    {
+      fprintf(stderr, "Malloc did not work.  Now exiting...\n");
+      exit(1);
+    }
+
+  for(int i=0; i<nthread; i++)
+    {
+      pointer[i] = malloc(nx * sizeof(double));
+      if(pointer[i] == NULL)//if the memory for a particular row wasn't allocated
+        {
+          fprintf(stderr, "Malloc did not work.  Now exiting...\n");
+          for(int j=0; j<i; j++)
+            {
+              free(pointer[j]);//free all the previous successfully allocated rows
+            }
+          free(pointer);//free the array of pointers
+          exit(1);
+        }
+      for(int j=0; j<nx; j++)
+        {
+          pointer[i][j] = malloc( (n+2) * sizeof(double));
+          if(pointer[i][j] = NULL)//if the memory for a particular row wasn't allocated
+            {
+              fprintf(stderr, "Malloc did not work.  Now exiting...\n");
+              for(int k=0; k<j; k++)
+                {
+                  free(pointer[i][k]);
+                }
+              for(int k=0; k<nthread; k++)
+                {
+                  free(pointer[k]);
+                }
+              free(pointer);
+            }
+        }
+          
+    }
+  return pointer;
+}
+
+void grid_destroyer(double ***pointer, const int nthread, const int nx)
+{
+  //free memory at the end
+  for(int i=0; i<nthread; i ++)
+    {
+      for(int j=0; j<nx; j++)
+        {
+          free(pointer[i][j]);
+        }
+      free(pointer[i]);
+    }
+  free(pointer);
+}
+
+int stepper(double **T, double **T2, const int nx, const double dx, const double dt, int nthread)
+{
+  //omp_set_num_threads(nthread);
+  //#pragma omp parallel for /*if(nthread>1) */
+ for(int i=0; i<nx; i++)//which row, y
+    {
+      for(int j=0; j<nx; j++)//which column, x
+        {
+          double *adjacent = malloc(4 * sizeof(double));
+          if(adjacent == NULL)
+            {
+              fprintf(stderr, "Malloc did not work.  Now exiting...\n");
+              //free(deltaT);
+              exit(1);
+            }
+          
+          
+          if(i==0) //corresponds to the top
+            {
+              adjacent[0] = T_x_pi_boundaryconditions(j,nx);
+            }
+          else
+            {
+              adjacent[0] = T[i-1][j];
+                }
+          
+          if(j==nx-1) //corresponds to right side
+            {
+              adjacent[1] = T[i][0];
+            }
+          else
+            {
+              adjacent[1] = T[i][j+1];
+            }
+          
+          if(i==nx-1) //corresponds to the bottom
+                {
+                  adjacent[2] = T_x_0_boundaryconditions(j,nx);
+                }
+          else
+            {
+              adjacent[2] = T[i+1][j];
+            }
+          
+          if(j==0) //corresponds to left side
+            {
+              adjacent[3] = T[i][nx-1];
+            }
+          else
+            {
+              adjacent[3] = T[i][j-1];
+            }
+
+
+          T2[i][j] = T[i][j] + dt / (dx * dx) * (adjacent[0] + adjacent[1] + adjacent[2] + adjacent[3] - 4.*T[i][j]);
+          free(adjacent);
+        }
+    }
+
+  return 0;
+}
+
+void  initial_message(char *name)
+{
+  printf("Usage: %s <nx>  \n",name);
+  printf("  nx:    grid size on a side\n         final grid will be 2-d sized nx by nx\n");
+  exit(1);
+}
+
+int main(int argc, char *argv[]) 
+{
+
+  double start_time = omp_get_wtime();
+  if (argc!=2) 
+    {
+      initial_message(argv[0]);
+    }
+  
+  const int nx = atoi(argv[1]); 
+  const int nthread = atoi(argv[2]);
+
+
+  if(nx % nthread !=0)
+    {
+      printf("Your chosen nx does not divide nicely into your chosen number of threads.\n Change the code or your arguments.  Now quitting...\n");
+      exit(0);
+    }
+
+
+
+  int check; /*used for checking outputs to make sure they are good*/
+  // double **T_arr; /*This will be a pointer to an array of pointers which will host the grid itself*/
+  //double **T_arr_2; /*This will be used to calculate the new T values at each time step while keeping the old values in T_arr for calculation purposes*/
+  //double **T_pointer_temp; /*To be used to switch the pointers T_arr and T_arr_2*/
+  const double fraction_of_maximum_time_step = 0.8;/*This is the fraction of the largest numerically stable timestep, calculated below, that we want our dt to actually be.  Keeping it some sane fraction will allow us to get an exact fraction of the maximum time we want. In units of kappa*/
+  const double dx = M_PI / (double)nx;
+  const double dt =  dx * dx / 4.0 * fraction_of_maximum_time_step; /*This is the time step size, in units of kappa, which later cancel*/
+  const double tmax = (0.5 * M_PI * M_PI);
+  const int ntstep = (int) (tmax/dt);
+
+
+
+  int numtasks,rank,rc;
+  rc = MPI_Init(&argc,&argv);
+  if( rc != MPI_SUCCESS) {
+    printf("Error starting MPI program.  Now quitting\n");
+    MPI_Abort(MPI_COMM_WORLD,rc);
+  }
+
+
+  double ***T_arr_decomposed; //This is a pointer to each array for each thread when the domain is decomposed.  Each array will also include ghost cells to allow for boundary calculations.
+
+  
+
+
+  //T_arr = grid_creator(nx);
+  //T_arr_2 = grid_creator(nx);
+
+  //Now initialize the array to the initial conditions
+  //Our initial conditions are to have T=0 everywhere
+
+  for(int i=0; i<nx; i++)
+    {
+      for(int j=0; j<nx; j++)
+        {
+          T_arr[i][j]=0.0;
+          //T_arr_2[i][j]=0.0;
+        }
+    }
+
+  printf("%d\n",(int) (tmax/dt));
+  for(int i=0; i<ntstep; i++)
+    {
+      if (i%10000 == 0)
+      {
+          printf("%d\n",i);
+      }
+      check = stepper(T_arr,T_arr_2,nx,dx,dt,nthread);
+      assert(check==0);
+
+
+      /*The following switches the pointers T_arr and T_arr_2, making T_arr now equal to the newly updated array formerly pointed to by T_arr_2 and giving the T_arr_2 pointer the old array*/
+      T_pointer_temp = T_arr_2;
+      T_arr_2 = T_arr;
+      T_arr = T_pointer_temp;
+    }
+
+
+  MPI_finalize();
+
+  FILE *fp;
+
+
+  char outputfilename[120] = "heat_omp.";
+  char stringtemp[120];
+  sprintf(stringtemp, "%d", nx);
+  strcat(outputfilename,stringtemp);
+  strcat(outputfilename,".");
+  sprintf(stringtemp, "%d", nthread);
+  strcat(outputfilename,stringtemp);
+  strcat(outputfilename,".output.dat");
+  
+  if(!(fp=fopen(outputfilename,"w")))
+    {
+      printf("Output file isn't opening for saving.  Now quitting...\n");
+      grid_destroyer(T_arr,nx);
+      grid_destroyer(T_arr_2,nx);
+      exit(1);
+    }
+
+  fprintf(fp,"#Final temperature stored in grid format\n");
+  fprintf(fp,"#Each column in this file corresponds to column of actual grid, as does each row\n");
+  
+  for(int i=0; i<nx; i++)
+    {
+      for(int j=0; j<nx; j++)
+        {
+          fprintf(fp,"%e     ", T_arr[i][j]);
+        }
+      fprintf(fp,"\n");
+    }
+  fclose(fp);
+
+  grid_destroyer(T_arr,nx);
+  grid_destroyer(T_arr_2,nx);
+
+  printf("threads: %d, nx: %d, time: %lf\n",nthread,nx,omp_get_wtime()-start_time);
+
+  return 0;
+}
