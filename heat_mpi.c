@@ -218,46 +218,72 @@ int main(int argc, char *argv[])
       //pass the boundary columns between the various threads
       double right_pass[nx],left_pass[nx],right_accept[nx],left_accept[nx];
 
-      for(int i=0; i<nx; i++)
+      for(int l=0; l<nx; l++)
         {
-          left_pass[i]=T_arr[i][1];
-          right_pass[i] =T_arr[i][ncols-2];
+          left_pass[l]=T_arr[l][1];
+          right_pass[l] =T_arr[l][ncols-2];
+	  if(i==0)
+	    {
+	      if(left_pass[l] > 1.e-12)
+		printf("Offending leftpass: index %d,  rank %d\n value: %e",l,rank,left_pass[l]);
+	      if(right_pass[l] > 1.e-12)
+		printf("Offending rightpass: index %d,  rank %d\n value: %e",l,rank,right_pass[l]);
+	    }
         }
 
 
-      printf("Made it here %d\n",rank);
+      //printf("Made it here %d\n",rank);
       MPI_Isend(&left_pass, nx, MPI_DOUBLE, prev, tag1, MPI_COMM_WORLD, &reqs[0]);
-      printf("First send %d\n",rank);
-      MPI_Isend(&right_pass, nx, MPI_DOUBLE, next, tag1, MPI_COMM_WORLD, &reqs[1]);
-      printf("Second send %d\n",rank);
+      //printf("First send %d\n",rank);
+      MPI_Isend(&right_pass, nx, MPI_DOUBLE, next, tag2, MPI_COMM_WORLD, &reqs[1]);
+      //printf("Second send %d\n",rank);
 
       MPI_Irecv(&left_accept, nx, MPI_DOUBLE, prev, tag2, MPI_COMM_WORLD, &reqs[2]);
-      printf("First receive %d\n",rank);
-      fflush(stdout);
-      MPI_Irecv(&right_accept, nx, MPI_DOUBLE, next, tag2, MPI_COMM_WORLD, &reqs[3]);
-      printf("Second receive %d\n",rank);
-      fflush(stdout);
+      //printf("First receive %d\n",rank);
+      //fflush(stdout);
+      MPI_Irecv(&right_accept, nx, MPI_DOUBLE, next, tag1, MPI_COMM_WORLD, &reqs[3]);
+      //printf("Second receive %d\n",rank);
+      //fflush(stdout);
 
       MPI_Waitall(4, reqs, stats);
-      printf("Wait all done %d\n",rank);
-      fflush(stdout);
+      //printf("Wait all done %d\n",rank);
+      //fflush(stdout);
 
-      for(int i=0; i<nx; i++)
+      for(int l=0; l<nx; l++)
         {
-	  printf("%d    %d\n",i,rank);
-          T_arr[i][0] = left_accept[i];
-          T_arr[i][ncols-1] = right_accept[i];
+	  //printf("%d    %d\n",i,rank);
+          T_arr[l][0] = left_accept[l];
+          T_arr[l][ncols+2-1] = right_accept[l];
+	  if(i==0)
+	    {
+	      if(left_accept[l] > 1.e-12)
+		printf("Offending leftaccept: index %d,  rank %d\n value: %e",l,rank,left_accept[l]);
+	      if(right_accept[l] > 1.e-12)
+		printf("Offending rightaccept: index %d,  rank %d\n value: %e",l,rank,right_accept[l]);
+	    }
         }
-      
+      if(i==0)
+	{
+	  for(int j=0; j<nx; j++)
+	    {
+	      for(int k=0; k<(ncols+2); k++)
+		{
+		  if( (T_arr[j][k] - 0.0) > 1.e-12)
+		    {
+		      printf("Offending T: index %d %d,  rank %d\n value: %e",j,k,rank,T_arr[j][k]);
+		    }
+		}
+	    }
+	}
       
       if (i == 10)
       {
         printf("%d   %d\n",i,rank);
       }
-      printf("Step in  %d\n",rank);
+      //printf("Step in  %d\n",rank);
       check = stepper(T_arr,T_arr_2,nx,dx,dt,ncols,rank);
       assert(check==0);
-      printf("step out   %d\n",rank);
+      //printf("step out   %d\n",rank);
 
 
       /*The following switches the pointers T_arr and T_arr_2, making T_arr now equal to the newly updated array formerly pointed to by T_arr_2 and giving the T_arr_2 pointer the old array*/
@@ -310,7 +336,7 @@ int main(int argc, char *argv[])
   
   MPI_Finalize();
 
-  printf("ranks: %d, nx: %d, time: %lf\n",numtasks,nx,MPI_Wtime()-start_time);
+  printf("numtasks: %d, rank: %d, nx: %d, time: %lf\n",numtasks,rank,nx,MPI_Wtime()-start_time);
 
   return 0;
 }
