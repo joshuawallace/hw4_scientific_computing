@@ -4,7 +4,7 @@ OMPFLAGS = -fopenmp
 
 
 
-all: heat_serial heat_omp 
+all: heat_serial heat_omp heat_mpi
 
 
 serial_objects = heat_serial.o creategrid.o stepper.o boundaryconditions.o
@@ -22,6 +22,9 @@ heat_serial: $(serial_objects)
 
 heat_omp: heat_omp.c
 	$(CC) $(CFLAGS) $(OMPFLAGS) $^ -o $@
+
+heat_mpi: heat_mpi.c
+	mpicc $(CFLAGS) $^ -O $@
 
 clean:
 	$(RM) *.o
