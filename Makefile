@@ -1,5 +1,6 @@
 CXXFLAGS = -g -Wall -std=c99
 CFLAGS = -g -Wall -lm -std=c99
+CFLAGSMPI = -g -Wall -std=c99
 OMPFLAGS = -fopenmp
 
 
@@ -24,7 +25,7 @@ heat_omp: heat_omp.c
 	$(CC) $(CFLAGS) $(OMPFLAGS) $^ -o $@
 
 heat_mpi: heat_mpi.c
-	mpicc $(CFLAGS) $^ -O $@
+	mpicc $(CFLAGSMPI) $^ -o $@ -lm
 
 clean:
 	$(RM) *.o

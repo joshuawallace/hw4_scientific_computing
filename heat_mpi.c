@@ -73,7 +73,7 @@ int stepper(double **T, double **T2, const int nx, const double dx, const double
 {
  for(int i=0; i<nx; i++)//which row, y
     {
-      for(int j=1; j<(ncols-1); j++)//which column, x
+      for(int j=1; j<(ncols+2-1); j++)//which column, x
         {
           double *adjacent = malloc(4 * sizeof(double));
           if(adjacent == NULL)
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
   if(nx % numtasks !=0)
     {
       printf("Your chosen nx does not divide nicely into your chosen number of threads.\n Change the code or your arguments.  Now quitting...\n");
-      MPI_Finalize()
+      MPI_Finalize();
       exit(0);
     }
 
@@ -176,6 +176,7 @@ int main(int argc, char *argv[])
 
   MPI_Request reqs[4];
   MPI_Status stats[4];
+  MPI_Status stats2[2];
 
 
 
@@ -205,7 +206,7 @@ int main(int argc, char *argv[])
 
   for(int i=0; i<nx; i++)
     {
-      for(int j=1; j<(n+2-1); j++)
+      for(int j=1; j<(ncols+2-1); j++)
         {
           T_arr[i][j]=0.0;
         }
@@ -220,32 +221,43 @@ int main(int argc, char *argv[])
       for(int i=0; i<nx; i++)
         {
           left_pass[i]=T_arr[i][1];
-          right_pass[i] =T_arr[i][ncol-2];
+          right_pass[i] =T_arr[i][ncols-2];
         }
 
 
-      
-      MPI_Isend(&left_pass, nx, MPI_double, prev, tag1, MPI_COMM_WORLD, &reqs[0]);
-      MPI_Isend(&right_pass, nx, MPI_double, next, tag1, MPI_COMM_WORLD, &reqs[1]);
+      printf("Made it here %d\n",rank);
+      MPI_Isend(&left_pass, nx, MPI_DOUBLE, prev, tag1, MPI_COMM_WORLD, &reqs[0]);
+      printf("First send %d\n",rank);
+      MPI_Isend(&right_pass, nx, MPI_DOUBLE, next, tag1, MPI_COMM_WORLD, &reqs[1]);
+      printf("Second send %d\n",rank);
 
-      MPI_Recv(&left_accept, nx, MPI_double, prev, tag2, MPI_COMM_WORLD, &reqs[2]);
-
-      MPI_Recv(&right_accept, nx, MPI_double, next, tag2, MPI_COMM_WORLD, &reqs[3]);
+      MPI_Irecv(&left_accept, nx, MPI_DOUBLE, prev, tag2, MPI_COMM_WORLD, &reqs[2]);
+      printf("First receive %d\n",rank);
+      fflush(stdout);
+      MPI_Irecv(&right_accept, nx, MPI_DOUBLE, next, tag2, MPI_COMM_WORLD, &reqs[3]);
+      printf("Second receive %d\n",rank);
+      fflush(stdout);
 
       MPI_Waitall(4, reqs, stats);
+      printf("Wait all done %d\n",rank);
+      fflush(stdout);
 
       for(int i=0; i<nx; i++)
         {
+	  printf("%d    %d\n",i,rank);
           T_arr[i][0] = left_accept[i];
           T_arr[i][ncols-1] = right_accept[i];
         }
+      
       
       if (i == 10)
       {
         printf("%d   %d\n",i,rank);
       }
+      printf("Step in  %d\n",rank);
       check = stepper(T_arr,T_arr_2,nx,dx,dt,ncols,rank);
       assert(check==0);
+      printf("step out   %d\n",rank);
 
 
       /*The following switches the pointers T_arr and T_arr_2, making T_arr now equal to the newly updated array formerly pointed to by T_arr_2 and giving the T_arr_2 pointer the old array*/
@@ -264,10 +276,10 @@ int main(int argc, char *argv[])
   sprintf(stringtemp, "%d", nx);
   strcat(outputfilename,stringtemp);
   strcat(outputfilename,".");
-  sprintf(stringtemp, "%d", nthread);
+  sprintf(stringtemp, "%d", numtasks);
   strcat(outputfilename,stringtemp);
   strcat(outputfilename,".rank.");
-  sprintf(stringtemp, "%d", nrank);
+  sprintf(stringtemp, "%d", rank);
   strcat(outputfilename,stringtemp);
   strcat(outputfilename,".output.dat");
   
@@ -283,7 +295,7 @@ int main(int argc, char *argv[])
   fprintf(fp,"#Final temperature stored in grid format, MPI style\n");
   fprintf(fp,"#Columns represent the rows in the actual grid and vice-versa.  This is so that each separate rank's file can easily be appended to the others to produce a full file.\n");
   
-  for(int i=0; i<ncols; i++)
+  for(int i=1; i<(ncols+2-1); i++)
     {
       for(int j=0; j<nx; j++)
         {
@@ -296,7 +308,7 @@ int main(int argc, char *argv[])
   grid_destroyer(T_arr,nx);
   grid_destroyer(T_arr_2,nx);
   
-  MPI_finalize();
+  MPI_Finalize();
 
   printf("ranks: %d, nx: %d, time: %lf\n",numtasks,nx,MPI_Wtime()-start_time);
 
