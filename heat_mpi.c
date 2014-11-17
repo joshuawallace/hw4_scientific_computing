@@ -86,7 +86,7 @@ int stepper(double **T, double **T2, const int nx, const double dx, const double
           
           if(i==0) //corresponds to the top
             {
-              adjacent[0] = T_x_pi_boundaryconditions((rank * ncols + j),nx);
+              adjacent[0] = T_x_pi_boundaryconditions((rank * ncols + j - 1),nx);
             }
           else
             {
@@ -105,7 +105,7 @@ int stepper(double **T, double **T2, const int nx, const double dx, const double
           
           if(i==nx-1) //corresponds to the bottom
                 {
-                  adjacent[2] = T_x_0_boundaryconditions((rank * ncols + j),nx);
+                  adjacent[2] = T_x_0_boundaryconditions((rank * ncols + j - 1),nx);
                 }
           else
             {
@@ -252,7 +252,6 @@ int main(int argc, char *argv[])
       for(int l=0; l<nx; l++)
         {
 	  //printf("%d    %d\n",i,rank);
-<<<<<<< HEAD
           T_arr[l][0] = left_accept[l];
           T_arr[l][ncols+2-1] = right_accept[l];
 	  if(i==0)
@@ -262,10 +261,6 @@ int main(int argc, char *argv[])
 	      if(right_accept[l] > 1.e-12)
 		printf("Offending rightaccept: index %d,  rank %d\n value: %e",l,rank,right_accept[l]);
 	    }
-=======
-          T_arr[i][0] = left_accept[i];
-          T_arr[i][ncols-1] = right_accept[i];
->>>>>>> 7bbf6440645961e37aa59b2f046da9b3346001d2
         }
       if(i==0)
 	{
@@ -281,19 +276,11 @@ int main(int argc, char *argv[])
 	    }
 	}
       
-<<<<<<< HEAD
       if (i == 10)
       {
         printf("%d   %d\n",i,rank);
       }
       //printf("Step in  %d\n",rank);
-=======
-      if (i % 10000 == 0)
-        {
-          printf("%d   %d\n",i,rank);
-        }
-      printf("Step in  %d\n",rank);
->>>>>>> 7bbf6440645961e37aa59b2f046da9b3346001d2
       check = stepper(T_arr,T_arr_2,nx,dx,dt,ncols,rank);
       assert(check==0);
       //printf("step out   %d\n",rank);
@@ -310,7 +297,7 @@ int main(int argc, char *argv[])
   FILE *fp;
 
 
-  char outputfilename[120] = "heat_mpi.";
+  char outputfilename[120] = "heat_omp.";
   char stringtemp[120];
   sprintf(stringtemp, "%d", nx);
   strcat(outputfilename,stringtemp);
