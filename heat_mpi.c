@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
       for(int l=0; l<nx; l++)
         {
           left_pass[l]=T_arr[l][1];
-          right_pass[l] =T_arr[l][ncols-2];
+          right_pass[l] =T_arr[l][ncols+2-1-1];//ncols+2 total number of columns, then -1 because zero indexed, then -1 again because we want to pass the second to last column.
 	  if(i==0)
 	    {
 	      if(left_pass[l] > 1.e-12)
