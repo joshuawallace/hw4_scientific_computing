@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 
 
   /*Save this rank's portion of the answer to file*/
-  char outputfilename[120] = "heat_omp."; //name of save file
+  char outputfilename[120] = "heat_mpi."; //name of save file
   char stringtemp[120];
   sprintf(stringtemp, "%d", nx);
   strcat(outputfilename,stringtemp);

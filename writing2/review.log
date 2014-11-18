@@ -1,0 +1,82 @@
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=latex 2013.8.22)  18 NOV 2014 16:27
+entering extended mode
+ %&-line parsing enabled.
+**review
+(./review.tex
+LaTeX2e <2005/12/01>
+Babel <v3.8h> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, arabic, basque, bulgarian, coptic, welsh, czech, slovak, german, ng
+erman, danish, esperanto, spanish, catalan, galician, estonian, farsi, finnish,
+ french, greek, monogreek, ancientgreek, croatian, hungarian, interlingua, ibyc
+us, indonesian, icelandic, italian, latin, mongolian, dutch, norsk, polish, por
+tuguese, pinyin, romanian, russian, slovenian, uppersorbian, serbian, swedish, 
+turkish, ukenglish, ukrainian, loaded.
+(/usr/share/texmf/tex/latex/base/article.cls
+Document Class: article 2005/09/16 v1.4f Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size10.clo
+File: size10.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+\@input{graphicx.aux}
+\openout2 = `graphicx.aux'.
+
+(/usr/share/texmf/tex/plain/plgraph/graphicx.tex
+(/usr/share/texmf/tex/plain/plgraph/miniltx.tex
+\@tempcnta=\count87
+\@tempcntb=\count88
+\@tempdima=\dimen103
+\@tempdimb=\dimen104
+\@tempdimc=\dimen105
+\@tempboxa=\box26
+\@tempskipa=\skip43
+\@tempskipb=\skip44
+\@temptokena=\toks14
+\leftmarginv=\dimen106
+\leftmarginvi=\dimen107
+\@ovxx=\dimen108
+\@ovyy=\dimen109
+\@ovdx=\dimen110
+\@ovdy=\dimen111
+\@ovro=\dimen112
+\@ovri=\dimen113
+\@xdim=\dimen114
+\@ydim=\dimen115
+\@linelen=\dimen116
+\@dashdim=\dimen117
+\fboxsep=\dimen118
+\fboxrule=\dimen119
+)
+! Interruption.
+<to be read again> 
+                   \futurelet 
+l.8 \input g
+            raphicx.sty
+? 
+! Emergency stop.
+<to be read again> 
+                   \futurelet 
+l.8 \input g
+            raphicx.sty
+End of file on the terminal!
+
+ 
+Here is how much of TeX's memory you used:
+ 206 strings out of 256217
+ 2308 string characters out of 1917095
+ 48804 words of memory out of 1500000
+ 3576 multiletter control sequences out of 10000+200000
+ 3640 words of font info for 14 fonts, out of 1200000 for 2000
+ 645 hyphenation exceptions out of 8191
+ 23i,0n,17p,136b,36s stack positions out of 5000i,500n,6000p,200000b,15000s
+No pages of output.
