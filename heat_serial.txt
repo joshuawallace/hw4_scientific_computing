@@ -1,6 +1,0 @@
-128^2 average temperature: 0.496830306313
-256^2 average temperature: 0.49695963511
-512^2 average temperature: 0.497022899482
-
-
-Same temps for omp
