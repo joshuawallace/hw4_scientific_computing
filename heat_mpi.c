@@ -86,7 +86,7 @@ int stepper(double **T, double **T2, const int nx, const double dx, const double
           
           if(i==0) //corresponds to the top
             {
-              adjacent[0] = T_x_pi_boundaryconditions((rank * ncols + j),nx);
+              adjacent[0] = T_x_pi_boundaryconditions((rank * ncols + j - 1),nx);
             }
           else
             {
@@ -105,7 +105,7 @@ int stepper(double **T, double **T2, const int nx, const double dx, const double
           
           if(i==nx-1) //corresponds to the bottom
                 {
-                  adjacent[2] = T_x_0_boundaryconditions((rank * ncols + j),nx);
+                  adjacent[2] = T_x_0_boundaryconditions((rank * ncols + j - 1),nx);
                 }
           else
             {
@@ -218,10 +218,17 @@ int main(int argc, char *argv[])
       //pass the boundary columns between the various threads
       double right_pass[nx],left_pass[nx],right_accept[nx],left_accept[nx];
 
-      for(int i=0; i<nx; i++)
+      for(int l=0; l<nx; l++)
         {
-          left_pass[i]=T_arr[i][1];
-          right_pass[i] =T_arr[i][ncols-2];
+          left_pass[l]=T_arr[l][1];
+          right_pass[l] =T_arr[l][ncols+2-1-1];//ncols+2 total number of columns, then -1 because zero indexed, then -1 again because we want to pass the second to last column.
+	  if(i==0)
+	    {
+	      if(left_pass[l] > 1.e-12)
+		printf("Offending leftpass: index %d,  rank %d\n value: %e",l,rank,left_pass[l]);
+	      if(right_pass[l] > 1.e-12)
+		printf("Offending rightpass: index %d,  rank %d\n value: %e",l,rank,right_pass[l]);
+	    }
         }
 
 
@@ -242,22 +249,41 @@ int main(int argc, char *argv[])
       //printf("Wait all done %d\n",rank);
       //fflush(stdout);
 
-      for(int i=0; i<nx; i++)
+      for(int l=0; l<nx; l++)
         {
 	  //printf("%d    %d\n",i,rank);
-          T_arr[i][0] = left_accept[i];
-          T_arr[i][ncols-1] = right_accept[i];
+          T_arr[l][0] = left_accept[l];
+          T_arr[l][ncols+2-1] = right_accept[l];
+	  if(i==0)
+	    {
+	      if(left_accept[l] > 1.e-12)
+		printf("Offending leftaccept: index %d,  rank %d\n value: %e",l,rank,left_accept[l]);
+	      if(right_accept[l] > 1.e-12)
+		printf("Offending rightaccept: index %d,  rank %d\n value: %e",l,rank,right_accept[l]);
+	    }
         }
+      if(i==0)
+	{
+	  for(int j=0; j<nx; j++)
+	    {
+	      for(int k=0; k<(ncols+2); k++)
+		{
+		  if( (T_arr[j][k] - 0.0) > 1.e-12)
+		    {
+		      printf("Offending T: index %d %d,  rank %d\n value: %e",j,k,rank,T_arr[j][k]);
+		    }
+		}
+	    }
+	}
       
-      
-      if (i % 10000 == 0)
-        {
-          printf("%d   %d\n",i,rank);
-        }
-      printf("Step in  %d\n",rank);
+      if (i == 10)
+      {
+        printf("%d   %d\n",i,rank);
+      }
+      //printf("Step in  %d\n",rank);
       check = stepper(T_arr,T_arr_2,nx,dx,dt,ncols,rank);
       assert(check==0);
-      printf("step out   %d\n",rank);
+      //printf("step out   %d\n",rank);
 
 
       /*The following switches the pointers T_arr and T_arr_2, making T_arr now equal to the newly updated array formerly pointed to by T_arr_2 and giving the T_arr_2 pointer the old array*/
@@ -271,7 +297,7 @@ int main(int argc, char *argv[])
   FILE *fp;
 
 
-  char outputfilename[120] = "heat_mpi.";
+  char outputfilename[120] = "heat_omp.";
   char stringtemp[120];
   sprintf(stringtemp, "%d", nx);
   strcat(outputfilename,stringtemp);
@@ -310,7 +336,7 @@ int main(int argc, char *argv[])
   
   MPI_Finalize();
 
-  printf("ranks: %d, nx: %d, time: %lf\n",numtasks,nx,MPI_Wtime()-start_time);
+  printf("numtasks: %d, rank: %d, nx: %d, time: %lf\n",numtasks,rank,nx,MPI_Wtime()-start_time);
 
   return 0;
 }
