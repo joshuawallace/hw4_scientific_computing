@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include "creategrid.h"
 
+/*Creates and destroys the arrays to hold the temperatures for the calculation*/
 
 double **grid_creator(const int nx)
 {
+  /*Create the array to store the temperatures*/
   double **pointer;
 
   pointer = malloc(nx * sizeof(double *));
@@ -34,7 +36,7 @@ double **grid_creator(const int nx)
 
 void grid_destroyer(double **pointer, const int nx)
 {
-  //free memory at the end
+  /*Free the memory to prevent memory leaks*/
   for(int i=0; i < nx; i ++)
     {
       free(pointer[i]);

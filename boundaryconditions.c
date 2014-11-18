@@ -2,15 +2,13 @@
 #include <stdio.h>
 #include "pi.h"
 
+/*This calculates the y=0 and y=pi boundary conditions for the serial code*/
 
 double T_x_0_boundaryconditions(int xi, int nx)
 {
   /*This is the boundary condition along the "bottom" of the grid, where y=0*/
   /*xi is the index of x*/
-  /*if(xi==0 || xi==nx/2 || xi==nx-1)
-    {
-      printf("cos: %e\n", ((double)xi + 0.5)/(M_PI * (double)nx));
-      }*/
+
   return cos(((double)xi + 0.5)/((double)nx) * M_PI) * cos(((double)xi + 0.5)/((double)nx) * M_PI);
 }
 
@@ -18,29 +16,6 @@ double T_x_pi_boundaryconditions(int xi, int nx)
 {
   /*This is the boundary condition along the "top" of the grid, where y=pi*/
   /*xi is the index of x*/
-  /*  if(xi==0 || xi==nx/2 || xi==nx-1)
-    {
-      printf("sin: %e\n", ((double)xi + 0.5)/(M_PI * (double)nx));
-      }*/
+
   return sin(((double)xi + 0.5)/((double)nx) * M_PI) * sin(((double)xi + 0.5)/((double)nx) * M_PI);
 }
-
-/*double T_0_y_boundaryconditions(int yi, int nx, double *T_arr)
-{
-  *This is the boundary condition along the "left" of the grid, where x=0*
-  *yi is the index of y*
-  *nx is the integer number of elements on the side of an array*
-  * **T_column is a pointer to the pointers that correspond to the whole array.  From this, the periodic boundary condition can be computed */
-
-/*  return T_arr[nx-1];
-}
-
-
-double T_pi_y_boundaryconditions(int yi, double *T_arr)
-{
-  *This is the boundary condition along the "right" of the grid, where x=pi*
-  *yi is the index of y*
-  * **T_column is a pointer to the pointers that correspond to the whole array.  From this, the periodic boundary condition can be computed */
-
-/*  return T_arr[0];
-    }*/

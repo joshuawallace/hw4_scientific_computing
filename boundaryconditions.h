@@ -1,15 +1,13 @@
 #ifndef BC_H_
 #define BC_H_
 
+/*Header file for boundaryconditions.c, which calcualtes the y=0 and y=pi boundary conditions*/
+
 
 
 double T_x_0_boundaryconditions(int xi, int nx);
     
 double T_x_pi_boundaryconditions(int xi, int nx);
 
-
-/*double T_0_y_boundaryconditions(int yi, double *T_column);
-
-  double T_pi_y_boundaryconditions(int yi, double *T_column);*/
 
 #endif
