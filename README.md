@@ -1,4 +1,4 @@
-hw2
+HW 4 for "Software Engineering for Scientific Computing"
 ===
 
 Homework assignment 2 for Princeton University's APC 524 course, "Software Engineering for Scientific Computing."
